@@ -137,7 +137,7 @@ def my_key(request):
                     "key":new_key
                     }
             return JsonResponse({"status":True, "message":"A new key has been created for you", "details":new})
-        return JsonResponse({"status":False,"message":"User Credentials Is invalid"})
+        return JsonResponse({"status":False,"message":"Invalid username or password!"})
     return JsonResponse({"status":False,"message":"Only POST request is available on this route"})
 
 
@@ -175,6 +175,8 @@ def delete_file(request):
         return JsonResponse({"status":True, "message":"Resend The request User GET. post is currently not supported.", "authorization":"user-token" if request.session["auth"]["key"] == request.POST.get("key") else "No Authorization. Page content has been locked"})
     key = request.GET.get("key")
     id = request.GET.get("id")
+    if not request.user.is_authenticated:
+        return JsonResponse({"status":False, "message":"Route is locked due to No login credentials Found. Login to contnue"})
 
     if not key or key !=request.session["auth"]["key"]:
         return JsonResponse({"status":False, "message":"Invalid Token Key."})
@@ -213,6 +215,25 @@ def delete_user(request):
     key = request.GET.get("key") if request.method=="GET" else request.POST.get("key")
     password = request.GET.get("password") if request.method =="GET" else request.POST.get("password")
 
-    print(key, password)
+    try:
+        if not request.user.is_authenticated:
+            return JsonResponse({"status":False, "message":"You are not authorized to access this route, you must first be logged in"})
+        username = request.user.username
+        if username:
+            if key == request.session["auth"]["key"]:
+                user = authenticate(request, username=username, password=password)
+                if user is not None:
+                    try:
+                        user.delete()
+                        request.session.flush()
+                        return JsonResponse({"status":True, "message":"User has been Deleted Successfully and all corresponding sessions has been flushed"})
+                    except Exception as e:
+                        return JsonResponse({"status":False, "message":f"{e}"})
+                return JsonResponse({"status":False, "message":"Invalid User Credentials"})
+            return JsonResponse({"status":False, "message":"Invalid Key Credential"})
+        return JsonResponse({"status":False, "message":"User details is invalid"})
+        
+    except Exception as e:
+        return JsonResponse({"status":False, "message":f"{e}"})
 
 
