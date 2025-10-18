@@ -384,7 +384,7 @@ Developed with passion by DukeeTheProgrammer.
 *   **GitHub**: [@DukeeTheProgrammer](https://github.com/DukeeTheProgrammer)
 *   **Email**: `duke2007@gmail.com`
 *   **LinkedIn**: [Your LinkedIn Profile](https://www.linkedin.com/in/yourusername)
-*   **Twitter**: [@YourTwitterHandle](https://twitter.com/yourusername)
+*   **Twitter**: [@YourTwitterHandle](https://twitter.com/Dukeecodes)
 
 ---
 [![Python 3.x](https://img.shields.io/badge/Python-3.x-blue.svg)](https://www.python.org/)
