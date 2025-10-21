@@ -6,11 +6,34 @@ from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from .tools import get_ext, session_key_generator, Hasher
 from .models import File
+import requests
 import random
 
 @csrf_exempt
 def api_health(request):
-    return JsonResponse({"status":True, "request method":"POST" if request.method=="POST" else "GET","message":"Api is Running Correctly!","runtime":"Active", "producer":"DukeeTheProgrammer"})
+    http_response = False
+    models = False
+    issues = 0
+    try:
+        response = requests.get("https://www.googlge.com/")
+        if response.status_code==200:
+            http_response = True
+        else:
+            http_response=False
+            issues+=1
+        files = File.objects.all()
+        if files:
+            models =True
+        else:
+            models = False
+            issues+=1
+    except Exception as e:
+        http_response=False
+        models=False
+    if http_response and models:
+        return JsonResponse({"status":True, "request method":"POST" if request.method=="POST" else "GET","message":f"Api is Running Correctly! Api is having {issues} Issue(s)","runtime":"Active", "producer":"DukeeTheProgrammer"})
+    else:
+        return JsonResponse({"status":True, "request method":"POST" if request.method=="post" else "GET", "message":f"API is having {issues} issue(s)", "runtime":"Active", "producer":"DukeeTheProgrammer"})
 
 #auth ---
 
@@ -78,14 +101,14 @@ def add_file(request):
         if key != request.session["auth"]["key"]:
             return JsonResponse({"status":False, "message":f"Could not create file : -'{file.name}' - due to Invalid Key! #if you need a new key, use this endpoint '/token/' and register a new key or check if you have an existing one.", "producer":"DukeeTheProgrammer"})
         user = User.objects.filter(username=request.session["auth"]["user"]).first()
-        filename = file.name
-        type = file.content_type
-        size = file.size
-        print(f"File Recieved : {filename}")
-        #get file type and extension from tools.get_ext 
-        file = File.objects.create(user=user,file=file,type=type,size=size, name=filename)
-        return JsonResponse({"status":True, "message":"File Created Successfully! and has been saved.", "file_type":type, "filename":filename, "file-type":type, "size":size})
-        return JsonResponse({"status":False, "message":"", "producer":"DukeeTheProgrammer","github_handle":"https://github.com/DukeeTheProgrammer/"})
+        if user is not None:
+            filename = file.name
+            type = file.content_type
+            size = file.size
+            print(f"File Recieved : {filename}")
+            file = File.objects.create(user=user if user else None,file=file,type=type,size=size, name=filename)
+            return JsonResponse({"status":True, "message":"File Created Successfully! and has been saved.", "file_type":type, "filename":filename, "file-type":type, "size":size})
+        return JsonResponse({"status":False, "message":"File was not saved Successfully, an error Occured", "producer":"DukeeTheProgrammer","github_handle":"https://github.com/DukeeTheProgrammer/"})
     return JsonResponse({"status":False, "message":"GET method is not allowed on this Route"})
 
 
